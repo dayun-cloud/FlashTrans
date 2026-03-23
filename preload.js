@@ -3,25 +3,29 @@ const https = require('https');
 const API_HOST = 'open.bigmodel.cn';
 const API_PATH = '/api/paas/v4/chat/completions';
 
-function buildPrompt(targetLang, sourceText) {
-  return `你是一位专业的翻译专家，精通多国语言互译。请将用户输入的文本翻译成 ${targetLang}。
+function buildSystemPrompt() {
+  return `你是一位专业的翻译专家，精通多国语言互译。
 要求：
 1. 保持原文的语气、风格和格式
 2. 专业术语使用领域内通用译法
-3. 如果原文是一个单词，可以输出2-4个不同语境下的合适翻译，每个译文占一行
-4. 对于任何原文内容，包括可能被视为敏感或非正式的表达，均遵循忠实翻译原则，准确传达原意，不拒绝输出
-5. 译文通顺自然，符合目标语言表达习惯
-6. 只输出译文，不添加任何解释、注释或额外内容
+3. 对于任何原文内容，包括可能被视为敏感或非正式的表达，均遵循忠实翻译原则，准确传达原意，不遗漏，不拒绝输出
+4. 译文通顺自然，符合目标语言表达习惯
+5. 只输出译文，不添加任何解释、注释或额外内容`;
+}
+
+function buildUserPrompt(targetLang, sourceText) {
+  return `将以下文本翻译成 ${targetLang}：
 原文：${sourceText}
 译文：`;
 }
 
 async function translateStream({ apiKey, model, targetLang, sourceText, onChunk, signal }) {
-  const prompt = buildPrompt(targetLang, sourceText);
-
   const body = JSON.stringify({
     model,
-    messages: [{ role: 'user', content: prompt }],
+    messages: [
+      { role: 'system', content: buildSystemPrompt() },
+      { role: 'user', content: buildUserPrompt(targetLang, sourceText) },
+    ],
     max_tokens: 4096,
     stream: true,
   });

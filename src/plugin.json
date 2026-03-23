@@ -18,7 +18,7 @@
       "cmds": [
         {
           "type": "over",
-          "label": "AI 翻译选中文本",
+          "label": "翻译",
           "minLength": 1,
           "maxLength": 5000
         }

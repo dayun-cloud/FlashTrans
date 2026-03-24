@@ -10,7 +10,7 @@
     {
       "code": "flash-trans",
       "explain": "瞬译 - AI 智能翻译",
-      "cmds": ["瞬译", "FlashTrans", "翻译", "fy"]
+      "cmds": ["瞬译", "翻译", "fy"]
     },
     {
       "code": "trans-over",

@@ -97,7 +97,7 @@
         <textarea
           id="source-text"
           class="text-area"
-          placeholder="输入或粘贴要翻译的文本…"
+          placeholder="输入或粘贴要翻译的文本…（Enter 触发翻译，Shift+Enter 为换行）"
           rows="5"
         ></textarea>
       </div>
@@ -120,11 +120,8 @@
       </div>
     </main>
 
-    <footer class="footer">
-      <button class="btn-translate" id="btn-translate">
-        <span id="btn-translate-text">翻译</span>
-      </button>
-    </footer>
+    <button class="btn-action" id="btn-copy-only">仅复制</button>
+    <button class="btn-action" id="btn-copy-exit">复制并退出</button>
 
     <div class="overlay" id="settings-overlay">
       <div class="settings-panel">
@@ -162,8 +159,23 @@
               </span>
             </div>
           </label>
-          <p class="settings-hint">开启后，输入文本时自动翻译（无需点击按钮）</p>
-          <p style="text-align: center;" class="settings-hint"> 作者：<a href="#" id="link-author" target="_blank">大沄</a></p>
+          <p class="settings-hint">开启后，输入文本时自动翻译</p>
+
+          <label class="settings-label settings-toggle-row">
+            <span>主题</span>
+            <div class="select-wrapper">
+              <select id="theme-select" class="lang-select">
+                <option value="system">跟随系统</option>
+                <option value="light">明亮</option>
+                <option value="dark">暗黑</option>
+              </select>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </label>
+
+          <p style="text-align: center; margin-top: 10px; margin-bottom: 0px;" class="settings-hint"> 作者：<a href="#" id="link-author" target="_blank">大沄</a></p>
         </div>
       </div>
     </div>
@@ -192,8 +204,6 @@
     const targetLangEl = $('target-lang');
     const sourceTextEl = $('source-text');
     const resultEl = $('result-text');
-    const btnTranslateEl = $('btn-translate');
-    const btnTranslateTextEl = $('btn-translate-text');
     const btnSwapEl = $('btn-swap');
     const btnClearEl = $('btn-clear');
     const btnPasteEl = $('btn-paste');
@@ -207,6 +217,7 @@
     const linkAuthorEl = $('link-author');
     const autoTranslateToggle = $('auto-translate-toggle');
     const autoTranslateTrack = $('auto-translate-track');
+    const themeSelectEl = $('theme-select');
 
     linkApiEl.addEventListener('click', (e) => {
       e.preventDefault();
@@ -278,7 +289,7 @@
       autoTranslateTimer = setTimeout(() => doTranslate({ auto: true }), AUTO_TRANSLATE_DELAY);
     }
 
-    async function doTranslate({ auto = false, pasteResult = false } = {}) {
+    async function doTranslate({ auto = false } = {}) {
       const text = sourceTextEl.value.trim();
       if (!text) {
         if (auto) {
@@ -298,8 +309,6 @@
       currentAbort = controller;
 
       resultEl.innerHTML = '<span class="streaming-cursor"></span>';
-      btnTranslateEl.disabled = true;
-      btnTranslateTextEl.textContent = '翻译中…';
 
       const targetLang = LANG_LABELS[targetLangEl.value] || targetLangEl.value;
 
@@ -321,35 +330,24 @@
         const translatedText = fullText.join('');
         if (!translatedText) {
           resultEl.innerHTML = `<span class="error-text">未获得翻译结果，请检查 API Key 是否有效</span>`;
-          showToast('翻译失败');
         } else {
           delete resultEl.dataset.content;
           resultEl.textContent = translatedText;
-
-          if (pasteResult) {
-            utools.hideMainWindowPasteText(translatedText);
-          }
-
-          showToast('翻译完成');
+          showActionBar(translatedText);
         }
       } catch (err) {
         if (err.message !== '请求已取消') {
           resultEl.innerHTML = `<span class="error-text">翻译失败：${err.message}</span>`;
-          showToast('翻译失败');
         }
       } finally {
-        btnTranslateEl.disabled = false;
-        btnTranslateTextEl.textContent = '翻译';
         currentAbort = null;
       }
     }
 
-    btnTranslateEl.addEventListener('click', () => doTranslate({ auto: false }));
-
     sourceTextEl.addEventListener('input', () => triggerAutoTranslate());
 
     sourceTextEl.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         doTranslate({ auto: false });
       }
@@ -386,12 +384,65 @@
       }
     });
 
+    function applyTheme(theme) {
+      if (theme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }
+
+    themeSelectEl.addEventListener('change', () => {
+      const theme = themeSelectEl.value;
+      localStorage.setItem('ft_theme', theme);
+      applyTheme(theme);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (localStorage.getItem('ft_theme') === 'system') {
+        applyTheme('system');
+      }
+    });
+
     function showToast(msg) {
       toastEl.textContent = msg;
       toastEl.classList.add('show');
       clearTimeout(toastEl._timer);
       toastEl._timer = setTimeout(() => toastEl.classList.remove('show'), 2500);
     }
+
+    let currentActionBarText = '';
+
+    function showActionBar(text) {
+      currentActionBarText = text;
+      $('btn-copy-only').classList.add('visible');
+      $('btn-copy-exit').classList.add('visible');
+    }
+
+    function hideActionBar() {
+      $('btn-copy-only').classList.remove('visible');
+      $('btn-copy-exit').classList.remove('visible');
+    }
+
+    $('btn-copy-only').addEventListener('click', () => {
+      if (!currentActionBarText) return;
+      hideActionBar();
+      navigator.clipboard.writeText(currentActionBarText)
+        .then(() => showToast('已复制到剪贴板'))
+        .catch(() => showToast('复制失败'));
+    });
+
+    $('btn-copy-exit').addEventListener('click', async () => {
+      if (!currentActionBarText) return;
+      hideActionBar();
+      try {
+        await navigator.clipboard.writeText(currentActionBarText);
+      } catch {
+        showToast('复制失败');
+      }      
+      utools.hideMainWindow();
+    });
 
     const savedKey = localStorage.getItem('ft_api_key');
     if (savedKey) apiKeyInputEl.value = savedKey;
@@ -401,6 +452,10 @@
       autoTranslateToggle.checked = true;
       autoTranslateTrack.classList.add('on');
     }
+
+    const savedTheme = localStorage.getItem('ft_theme') || 'system';
+    themeSelectEl.value = savedTheme;
+    applyTheme(savedTheme);
 
     utools.onPluginEnter(({ code, payload }) => {
       if (code !== 'trans-over') return;

@@ -1,3 +1,26 @@
+/* ── Dark Theme ── */
+html[data-theme="dark"] {
+  --bg: #1c1c1e;
+  --bg-2: #2c2c2e;
+  --bg-3: #3a3a3c;
+  --text: #f2f2f7;
+  --text-2: #98989d;
+  --accent: #5bb5c8;
+  --accent-2: #7dd3e5;
+  --accent-hover: #4aa5b8;
+  --accent-gradient: linear-gradient(135deg, #5bb5c8 0%, #7dd3e5 100%);
+  --border: #48484a;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --action-bar-color: #fff;
+  --action-bar-btn-bg: rgba(255, 255, 255, 0.12);
+  --action-bar-btn-bg-hover: rgba(255, 255, 255, 0.22);
+}
+
+/* Toast in dark mode */
+[data-theme="dark"] .toast {
+  background: rgba(44, 44, 46, 0.95);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -18,6 +41,9 @@
   --shadow: rgba(0, 0, 0, 0.08);
   --radius: 8px;
   --radius-sm: 6px;
+  --action-bar-color: #1d1d1f;
+  --action-bar-btn-bg: rgba(0, 0, 0, 0.06);
+  --action-bar-btn-bg-hover: rgba(0, 0, 0, 0.12);
 }
 
 body {
@@ -265,40 +291,48 @@ body {
   color: #e53935;
 }
 
-/* ── Footer ── */
-.footer {
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-  background: var(--bg);
+/* ── Action Buttons ── */
+.btn-action {
+  position: fixed;
+  bottom: 24px;
+  padding: 6px 18px;
+  border: none;
+  border-radius: 16px;
+  background: var(--action-bar-btn-bg);
+  color: var(--action-bar-color);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.2s, transform 0.2s;
+  z-index: 90;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(10px);
+}
+.btn-action.visible {
+  opacity: 1;
+  pointer-events: all;
+  visibility: visible;
+  transform: translateY(0);
+}
+.btn-action:hover {
+  background: var(--action-bar-btn-bg-hover);
 }
 
-.btn-translate {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 0;
-  background: var(--accent-gradient);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.15s;
+#btn-copy-only {
+  left: 50%;
+  transform: translateX(calc(-50% - 52px)) translateY(10px);
 }
-.btn-translate svg {
-  width: 16px;
-  height: 16px;
+#btn-copy-only.visible {
+  transform: translateX(calc(-50% - 52px)) translateY(0);
 }
-.btn-translate:hover:not(:disabled) {
-  opacity: 0.88;
+#btn-copy-exit {
+  left: 50%;
+  transform: translateX(calc(-50% + 52px)) translateY(10px);
 }
-.btn-translate:disabled {
-  opacity: 0.55;
-  cursor: default;
+#btn-copy-exit.visible {
+  transform: translateX(calc(-50% + 52px)) translateY(0);
 }
 
 /* ── Settings Overlay ── */
@@ -396,8 +430,8 @@ body {
 
 .toggle-wrapper {
   position: relative;
-  width: 40px;
-  height: 22px;
+  width: 32px;
+  height: 18px;
   flex-shrink: 0;
 }
 
@@ -412,7 +446,7 @@ body {
   position: absolute;
   inset: 0;
   background: var(--bg-3);
-  border-radius: 11px;
+  border-radius: 9px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -424,8 +458,8 @@ body {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -433,13 +467,13 @@ body {
   pointer-events: none;
 }
 .toggle-track.on .toggle-thumb {
-  transform: translateX(18px);
+  transform: translateX(14px);
 }
 
 /* ── Toast ── */
 .toast {
   position: fixed;
-  bottom: 60px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
   background: rgba(29, 29, 31, 0.9);

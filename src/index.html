@@ -298,7 +298,7 @@
         }
         return;
       }
-      const apiKey = localStorage.getItem('ft_api_key');
+      const apiKey = utools.dbStorage.getItem('ft_api_key');
       if (!apiKey) {
         settingsOverlayEl.classList.add('active');
         showToast('请先设置 API Key');
@@ -371,11 +371,11 @@
     apiKeyInputEl.addEventListener('blur', () => {
       const val = apiKeyInputEl.value.trim();
       if (val) {
-        localStorage.setItem('ft_api_key', val);
+        utools.dbStorage.setItem('ft_api_key', val);
       }
     });
     autoTranslateToggle.addEventListener('change', () => {
-      localStorage.setItem('ft_auto_translate', autoTranslateToggle.checked ? '1' : '0');
+      utools.dbStorage.setItem('ft_auto_translate', autoTranslateToggle.checked ? '1' : '0');
       autoTranslateTrack.classList.toggle('on', autoTranslateToggle.checked);
       if (autoTranslateToggle.checked) {
         triggerAutoTranslate();
@@ -395,12 +395,12 @@
 
     themeSelectEl.addEventListener('change', () => {
       const theme = themeSelectEl.value;
-      localStorage.setItem('ft_theme', theme);
+      utools.dbStorage.setItem('ft_theme', theme);
       applyTheme(theme);
     });
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (localStorage.getItem('ft_theme') === 'system') {
+      if (utools.dbStorage.getItem('ft_theme') === 'system') {
         applyTheme('system');
       }
     });
@@ -444,16 +444,16 @@
       utools.hideMainWindow();
     });
 
-    const savedKey = localStorage.getItem('ft_api_key');
+    const savedKey = utools.dbStorage.getItem('ft_api_key');
     if (savedKey) apiKeyInputEl.value = savedKey;
 
-    const savedAutoTranslate = localStorage.getItem('ft_auto_translate');
+    const savedAutoTranslate = utools.dbStorage.getItem('ft_auto_translate');
     if (savedAutoTranslate === '1') {
       autoTranslateToggle.checked = true;
       autoTranslateTrack.classList.add('on');
     }
 
-    const savedTheme = localStorage.getItem('ft_theme') || 'system';
+    const savedTheme = utools.dbStorage.getItem('ft_theme') || 'system';
     themeSelectEl.value = savedTheme;
     applyTheme(savedTheme);
 
